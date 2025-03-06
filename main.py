@@ -37,7 +37,7 @@ def collect_papers(keywords: list, max_results: int = 100) -> None:
 def advise(directory: str, query: str = None):
     # 如果没有提供query，则使用默认值
     if not query:
-        query = "这个领域有哪些推荐的研究方向可以做？"
+        query = "这个领域有哪些最新的研究方向值得尝试？"
     
     db_path = os.path.join(directory, 'chroma_db')
     if not os.path.exists(db_path):
@@ -46,7 +46,7 @@ def advise(directory: str, query: str = None):
     
     answer = query_and_generate_answer(query=query, db_path=db_path)
     
-    print(f"基于您的问题 '{query}'，以下是建议的研究方向：\n{answer}")
+    print(f"{answer}")
 
 def main():
     parser = argparse.ArgumentParser(description="科研研究方向分析工具")

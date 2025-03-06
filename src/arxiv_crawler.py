@@ -2,7 +2,6 @@ import requests
 import time
 from pathlib import Path
 from bs4 import BeautifulSoup
-from config.settings import Config
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,7 +10,7 @@ class ArXivCrawler:
     def __init__(self):
         self.base_url = "http://export.arxiv.org/api/query?"
         self.pdf_base_url = "http://arxiv.org/pdf/"
-        self.headers = {'User-Agent': 'ResearchHelper/1.0 (contact@example.com)'}
+        self.headers = {'User-Agent': 'ResearchHelper'}
 
     def search_papers(self, keyword, max_results=10):
         query = f"search_query=all:{keyword}&start=0&max_results={max_results}"
@@ -34,7 +33,7 @@ class ArXivCrawler:
 
     def download_paper(self, paper_id, save_dir, max_retries=3, delay=5):
         url = f"{self.pdf_base_url}{paper_id}.pdf"
-        Path(save_dir).mkdir(parents=True, exist_ok=True)  # 创建关键词对应的目录
+        Path(save_dir).mkdir(parents=True, exist_ok=True)  
         for attempt in range(max_retries):
             try:
                 response = requests.get(url, headers=self.headers)

@@ -16,8 +16,7 @@ ResearchHelper/
 ```
 
 ## 待完成内容
-requirement.txt
-
+```
 泛化关键词描述（如：输入一句话，生成一些可能的关键词进行搜索）
 
 更多数据库索引
@@ -26,22 +25,24 @@ requirement.txt
 
 向量库重置功能
 
-自定义对话建议
-
 其余api支持
 
-多模态支持（目前只支持pdf中的文字）
-
+多模态支持（目前只支持pdf中的文字内容）
+```
 ## 使用示例
 ```bash
 # 安装依赖
 pip install -r requirements.txt
 
-# 抓取大模型相关论文
-python main.py collect --keywords "large language models" --max 3
+# 在settings.py中设置你的base-url和api-key
+API_KEY = "sk-xxx"  # 替换成你的api-key
+API_URL = "https://api.siliconflow.cn/v1"  # 你使用的api的base-url，这里用的是硅基流动
 
-# 更新数据库
+# 抓取领域论文（以大语言模型为例）
+python main.py collect --keywords "large language models" --max 5
+
+# 更新数据库，若不指定--keywords则更新全部数据库
 python main.py update_db --keywords "large language models" 
 
-# 提出科研建议
-python main.py advise --keywords "large language models" 
+# 提出科研建议，若不指定--query则默认询问研究方向
+python main.py advise --keywords "large language models" --query "我手头的算力资源并不充裕，从科研的角度来讲，我可以在哪些大模型的方向进行尝试呢？"
