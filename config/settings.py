@@ -1,19 +1,16 @@
 import os
 from pathlib import Path
 
-# 加载环境变量
-from dotenv import load_dotenv
-
-load_dotenv(Path(__file__).parent.parent / ".env")
-
 class Config:
     # 文件存储路径
     BASE_PAPER_DIR = Path("storage/papers").absolute()  # 修改点：基础存储目录
-    VECTOR_DB_PATH = Path("storage/vectors").absolute()
     
-    # 大模型配置（硅基流动示例）
-    SILICONFLOW_API_KEY = "sk-cgsiidhwchkefzjmqnjhpbnwieehrnrgbebstxkwqxfsvuie"
-    SILICONFLOW_API_URL = "https://api.siliconflow.cn/v1"
+    # 大模型配置
+    API_KEY = "sk-xxx"  # 替换成你的api-key
+    BASE_URL = "https://api.siliconflow.cn/v1"  # 你使用的api的base-url，这里用的是硅基流动
+
+    # 检索配置
+    TOP_K = 10  # 检索最相关的TopK条数据
     
     # 爬虫配置
     CRAWL_DELAY = 1  # 爬虫延迟时间（秒）
@@ -22,4 +19,3 @@ class Config:
 
 # 初始化存储目录
 Config.BASE_PAPER_DIR.mkdir(parents=True, exist_ok=True)
-Config.VECTOR_DB_PATH.mkdir(parents=True, exist_ok=True)

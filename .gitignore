@@ -1,0 +1,7 @@
+*.log
+*.pdf
+
+__pycache__/
+
+chroma_db/
+papers/

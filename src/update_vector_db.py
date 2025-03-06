@@ -1,11 +1,9 @@
 import os
 import fitz  # PyMuPDF
-from chromadb.config import Settings
 from chromadb import PersistentClient
 from chromadb.errors import InvalidCollectionException
 import requests
 import hashlib
-from pathlib import Path
 from config.settings import Config
 
 def extract_text_from_pdf(pdf_path):
@@ -31,14 +29,6 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
         
     return chunks
 
-def get_file_hash(file_path):
-    """计算文件的SHA-256哈希值"""
-    hasher = hashlib.sha256()
-    with open(file_path, 'rb') as f:
-        buf = f.read()
-        hasher.update(buf)
-    return hasher.hexdigest()
-
 def update_vector_db(directory, chunk_size=300, overlap=50):
     db_path = os.path.join(directory, 'chroma_db')
     client = PersistentClient(path=db_path)
@@ -49,13 +39,12 @@ def update_vector_db(directory, chunk_size=300, overlap=50):
     except InvalidCollectionException:
         collection = client.create_collection(name="pdf_collection")
         print("未找到现有向量索引，正在创建新索引...")
-    # print(collection.get())
     existing_files = {metadata['filename'] for metadata in collection.get()['metadatas']}
-    # print(directory)
+
     print("当前目录下的文件列表：")
     print(existing_files)
     headers = {
-        "Authorization": f"Bearer {Config.SILICONFLOW_API_KEY}",
+        "Authorization": f"Bearer {Config.API_KEY}",
         "Content-Type": "application/json"
     }
 
@@ -82,7 +71,7 @@ def update_vector_db(directory, chunk_size=300, overlap=50):
                 }
 
                 response = requests.post(
-                    "https://api.siliconflow.cn/v1/embeddings",
+                    f"{Config.BASE_URL}/embeddings",
                     headers=headers,
                     json=payload
                 )
