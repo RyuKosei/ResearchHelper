@@ -1,5 +1,5 @@
+# Python >= 3.8 is required
 beautifulsoup4==4.13.3
 chromadb==0.6.3
-fitz==0.0.1.dev2
-python-dotenv==1.0.1
+pymupdf==1.25.3
 Requests==2.32.3

@@ -1,14 +1,13 @@
 import os
-import fitz  # PyMuPDF
+import pymupdf  
 from chromadb import PersistentClient
 from chromadb.errors import InvalidCollectionException
 import requests
-import hashlib
 from config.settings import Config
 
 def extract_text_from_pdf(pdf_path):
     print("正在从PDF文件中提取文本：", pdf_path)
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     text = ""
     for page_num in range(len(doc)):
         page = doc.load_page(page_num)
