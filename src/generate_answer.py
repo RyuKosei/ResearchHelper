@@ -40,7 +40,7 @@ def query_and_generate_answer(query, db_path, top_k=Config.TOP_K):
             }
         ],
         "stream": False,
-        "max_tokens": 1024,
+        "max_tokens": 4096,
         "temperature": 0.7
     }
     

@@ -29,8 +29,13 @@ ResearchHelper/
 
 多模态支持（目前只支持pdf中的文字内容）
 ```
+
 ## 使用示例
+
 ```bash
+# macOS用户需要额外下载插件tools，Windows用户可以跳过这一步骤
+pip install tools==0.1.9
+
 # 安装依赖
 pip install -r requirements.txt
 
@@ -38,7 +43,7 @@ pip install -r requirements.txt
 API_KEY = "sk-xxx"  # 替换成你的api-key
 API_URL = "https://api.siliconflow.cn/v1"  # 你使用的api的base-url，这里用的是硅基流动
 
-# 抓取领域论文（以大语言模型为例）
+# 抓取领域论文（以大语言模型为例），若不指定--max作为抓取的论文数量则默认为50
 python main.py collect --keywords "large language models" --max 5
 
 # 更新数据库，若不指定--keywords则更新全部数据库
