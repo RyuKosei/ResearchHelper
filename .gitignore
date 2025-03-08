@@ -5,3 +5,5 @@ __pycache__/
 
 chroma_db/
 papers/
+/test/
+/.idea/

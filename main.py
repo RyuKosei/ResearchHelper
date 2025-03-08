@@ -1,4 +1,6 @@
 import argparse
+
+from src.aclanthology_crawler import ACLAnthologyCrawler
 from src.arxiv_crawler import ArXivCrawler
 from src.generate_answer import query_and_generate_answer
 from src.update_vector_db import update_vector_db
@@ -34,6 +36,22 @@ def collect_papers(keywords: list, max_results: int = 100) -> None:
                 logger.error(f"下载论文 {paper['title']} 失败: {str(e)}")
                 continue
 
+def collect_papers_acl(keywords: list, max_results: int = 100) -> None:
+    crawler = ACLAnthologyCrawler()
+    for keyword in keywords:
+        logger.info(f"正在收集关键词 '{keyword}' 的ACL论文...")
+        save_dir = Config.BASE_PAPER_DIR / keyword.replace(' ', '_')
+        papers = crawler.search_papers(keyword=keyword, max_results=max_results)
+        for paper in papers:
+            try:
+                result = crawler.download_paper(paper_id=paper['id'], save_dir=save_dir, max_retries=Config.DOWNLOAD_RETRIES, delay=Config.RETRY_DELAY)
+                if result['success']:
+                    pdf_path = result['path']
+                    logger.info(f"成功下载ACL论文: {paper['title']}")
+            except Exception as e:
+                logger.error(f"下载ACL论文 {paper['title']} 失败: {str(e)}")
+                continue
+
 def advise(directory: str, query: str = None):
     # 如果没有提供query，则使用默认值
     if not query:
@@ -57,6 +75,10 @@ def main():
     collect_parser.add_argument('-k', '--keywords', nargs='+', required=True, help='搜索关键词列表（例如：transformer llm）')
     collect_parser.add_argument('-m', '--max', type=int, default=50, help='每个关键词最大获取论文数（默认：50）')
 
+    collect_parser = subparsers.add_parser('collect_acl', help='收集ACL论文')
+    collect_parser.add_argument('-k', '--keywords', nargs='+', required=True, help='搜索关键词列表（例如：transformer llm）')
+    collect_parser.add_argument('-m', '--max', type=int, default=50, help='每个关键词最大获取论文数（默认：50）')
+
     # Update DB command
     update_db_parser = subparsers.add_parser('update_db', help='更新向量数据库')
     update_db_parser.add_argument('-k', '--keywords', type=str, required=False, help='指定要更新的文件夹名称（例如：large_language_model），如果不指定，则更新所有文件夹')
@@ -70,6 +92,8 @@ def main():
 
     if args.command == 'collect':
         collect_papers(args.keywords, args.max)
+    elif args.command == 'collect_acl':
+        collect_papers_acl(args.keywords, args.max)
     elif args.command == 'update_db':
         folder_name = args.keywords if hasattr(args, 'keywords') else None
         directory = Path(Config.BASE_PAPER_DIR) / (folder_name.replace(' ', '_') if folder_name else '')
