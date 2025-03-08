@@ -3,16 +3,17 @@
 ## 项目结构
 ```
 ResearchHelper/
-├── src/                    # 代码目录
-│   ├── arxiv_crawler.py    # arXiv爬虫实现
-│   └── update_vector_db.py # 更新向量数据库
-│   └── generate_answer.py  # 生成科研方向建议
-├── config/                 # 配置管理
+├── src/                           # 代码目录
+│   ├── arxiv_crawler.py           # arXiv爬虫实现
+│   ├── aclanthology_crawler.py    # ACL anthology爬虫实现
+│   └── update_vector_db.py        # 更新向量数据库
+│   └── generate_answer.py         # 生成科研方向建议
+├── config/                        # 配置管理
 │   └── settings.py       
-├── storage/                # 论文存储 
-│   └── papers/             # PDF存储目录（自动创建）
-├── requirements.txt        # 依赖库
-└── main.py                 # 主程序入口
+├── storage/                       # 论文存储 
+│   └── papers/                    # PDF存储目录（自动创建）
+├── requirements.txt               # 依赖库
+└── main.py                        # 主程序入口
 ```
 
 ## 待完成内容
