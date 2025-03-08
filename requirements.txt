@@ -3,3 +3,5 @@ beautifulsoup4==4.13.3
 chromadb==0.6.3
 pymupdf==1.25.3
 Requests==2.32.3
+selenium==4.29.0
+webdriver-manager==4.0.2
