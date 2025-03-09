@@ -116,7 +116,7 @@ def main():
             crawler = ArXivCrawler()
         else:
             crawler = ACLAnthologyCrawler()
-        crawler.collect_papers(keywords=args.keywords, max_results=args.max, sort_by=args.sort)
+        crawler.collect_papers(keywords=keywords, max_results=args.max, sort_by=args.sort)
     elif args.command == 'update_db':
         folder_name = args.keywords if hasattr(args, 'keywords') else None
         directory = Path(Config.BASE_PAPER_DIR) / (folder_name.replace(' ', '_') if folder_name else '')
