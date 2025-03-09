@@ -31,6 +31,85 @@ ResearchHelper/
 多模态支持（目前只支持pdf中的文字内容）
 ```
 
+## 指令和参数
+### 1️⃣ `collect` (收集论文)
+用于从 `arxiv` 或 `ACL Anthology` 爬取论文，并存入本地。
+
+#### 💌 语法
+```bash
+python main.py collect --keywords <关键词1> <关键词2> ... --max <最大论文数> --source <数据源> --sort <排序方式>
+```
+
+#### 💌 可选参数
+| 参数 | 说明 | 选项 | 默认值 |
+|------|------|------|------|
+| `-k, --keywords` | **搜索关键词列表**（多个用空格分隔） | 任意字符串 | 必填（与 `--description` 二选一） |
+| `-d, --description` | **主题描述**（自动生成搜索关键词） | 任意字符串 | 必填（与 `--keywords` 二选一） |
+| `-m, --max` | **每个关键词最大获取论文数** | 整数 | `50` |
+| `-s, --source` | **数据源** | `arxiv` / `acl` | `arxiv` |
+| `--sort` | **排序方式** | `relevance` / `latest` | `relevance` |
+
+#### 💌 示例
+```bash
+# 1️⃣ 直接使用关键词搜索 10 篇 ACL 论文，按发布时间排序
+python main.py collect --keywords "transformer" "LLM" --max 10 --source acl --sort latest
+
+# 2️⃣ 使用自然语言描述，自动推断关键词并搜索 5 篇论文
+python main.py collect --description "大模型优化方向" --max 5
+```
+
+---
+
+### 2️⃣ `update_db` (更新向量数据库)
+用于将本地爬取的论文数据更新到向量数据库。
+
+#### 💌 语法
+```bash
+python main.py update_db --keywords <数据库名称>
+```
+
+#### 💌 可选参数
+| 参数 | 说明 | 选项 | 默认值 |
+|------|------|------|------|
+| `-k, --keywords` | **指定要更新的数据库** | 数据库名称 | 不填则更新全部 |
+
+#### 💌 示例
+```bash
+# 1️⃣ 只更新 "large language models" 相关数据库
+python main.py update_db --keywords "large_language_model"
+
+# 2️⃣ 更新所有数据库
+python main.py update_db
+```
+
+---
+
+### 3️⃣ `advise` (科研建议)
+从数据库中获取科研方向建议，基于已有数据进行智能回答。
+
+#### 💌 语法
+```bash
+python main.py advise --keywords <数据库名称> --query <问题>
+```
+
+#### 💌 可选参数
+| 参数 | 说明 | 选项 | 默认值 |
+|------|------|------|------|
+| `-k, --keywords` | **指定数据库**（多个用 `,` 分隔） | 数据库名称 | 必填 |
+| `-q, --query` | **用户查询**（科研问题） | 任意字符串 | 不填则提供研究方向建议 |
+
+#### 💌 示例
+```bash
+# 1️⃣ 询问 "large language models" 相关的研究方向
+python main.py advise --keywords "large_language_model"
+
+# 2️⃣ 提出具体问题："算力有限，我应该研究什么方向？"
+python main.py advise --keywords "large_language_model" --query "算力资源受限的情况下，我适合研究什么？"
+```
+
+
+
+
 ## 使用示例
 
 ```bash
