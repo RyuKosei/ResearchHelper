@@ -5,9 +5,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from webdriver_manager.chrome import ChromeDriverManager
 
-from src.crawlers import BaseCrawler
+from .base_crawler import BaseCrawler
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +30,28 @@ class ACLAnthologyCrawler(BaseCrawler):
 
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-    def search_papers(self, keyword, max_results=10):
+    def search_papers(self, keyword, max_results=10, sort_by="relevance"):
         search_url = f"{self.search_url}{keyword.replace(' ', '+')}"
         self.driver.get(search_url)
         time.sleep(3)  # 等待页面加载
+
+        if sort_by == "latest":
+            try:
+                sort_dropdown = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.CLASS_NAME, "gsc-selected-option-container"))
+                )
+                sort_dropdown.click()  # 模拟点击打开排序选项
+                time.sleep(1)  # 等待下拉菜单展开
+
+                year_sort_option = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.XPATH, "//div[@class='gsc-option' and text()='Year of Publication']"))
+                )
+
+                year_sort_option.click()
+                time.sleep(3)  # 等待页面刷新
+
+            except Exception as e:
+                print(f"排序时出错: {str(e)}")
 
         entries = []
         seen_urls = set()

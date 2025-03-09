@@ -16,7 +16,7 @@ class BaseCrawler(ABC):
         self.headers = {'User-Agent': 'ResearchHelper'}
 
     @abstractmethod
-    def search_papers(self, keyword, max_results=10):
+    def search_papers(self, keyword, max_results=10, sort_by="relevance"):
         """搜索论文，返回结果列表"""
         pass
 
@@ -40,11 +40,11 @@ class BaseCrawler(ABC):
                 time.sleep(delay)
         return {'success': False}
 
-    def collect_papers(self, keywords: list, max_results: int = 100) -> None:
+    def collect_papers(self, keywords: list, max_results: int = 100, sort_by: str="relevance") -> None:
         for keyword in keywords:
             logger.info(f"正在收集关键词 '{keyword}' 的论文...")
             save_dir = Config.BASE_PAPER_DIR / keyword.replace(' ', '_')
-            papers = self.search_papers(keyword=keyword, max_results=max_results)
+            papers = self.search_papers(keyword=keyword, max_results=max_results, sort_by=sort_by)
             for paper in papers:
                 try:
                     result = self.download_paper(paper_id=paper['id'], save_dir=save_dir, max_retries=Config.DOWNLOAD_RETRIES, delay=Config.RETRY_DELAY)

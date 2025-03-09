@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import logging
 
-from src.crawlers import BaseCrawler
+from .base_crawler import BaseCrawler
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +13,9 @@ class ArXivCrawler(BaseCrawler):
         self.pdf_base_url = "http://arxiv.org/pdf/"
         self.headers = {'User-Agent': 'ResearchHelper'}
 
-    def search_papers(self, keyword, max_results=10):
-        query = f"search_query=all:{keyword}&start=0&max_results={max_results}"
+    def search_papers(self, keyword, max_results=10, sort_by="relevance"):
+        sort_order = "relevance" if sort_by == "relevance" else "lastUpdatedDate"
+        query = f"search_query=all:{keyword}&start=0&max_results={max_results}&sortBy={sort_order}&sortOrder=descending"
         response = requests.get(self.base_url + query, headers=self.headers)
         return self.parse_results(response.text)
 
