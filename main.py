@@ -8,6 +8,7 @@ from config.settings import Config
 from pathlib import Path
 import logging
 import os
+import requests
 
 # 配置日志
 logging.basicConfig(
@@ -20,6 +21,51 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def infer_keywords_from_description(description: str) -> list:
+    url = f"{Config.BASE_URL}/chat/completions"
+    prompt = f"""以下是对某个研究领域的描述：{description}\n，请你据此描述，提炼出若干个英文关键词，你的回答需要严格遵循以下格式，且不能输出任何其他内容！
+关键词数量：X（X为你认为需要提炼的英文关键词数）
+关键词内容：[keyword1, keyword2, ...]（将你提炼出的英文关键词代替为keyword1, keyword2...）"""
+    data = {
+        "model": "Pro/deepseek-ai/DeepSeek-R1",
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        "stream": False,
+        "max_tokens": 1024,  # 由于只需要关键词，这里可以设置较小的值
+        "temperature": 0.7
+    }
+
+    try:
+        response = requests.post(
+            url, 
+            headers={
+                "Authorization": f"Bearer {Config.API_KEY}", 
+                "Content-Type": "application/json"
+            }, 
+            json=data
+        )
+        response.raise_for_status()  # 如果响应状态码表示错误，则抛出HTTPError
+        
+        answer = response.json().get('choices')[0].get('message').get('content')
+        # print(response.json)
+        print("正在分析用户描述以提取关键词...")
+        print(answer)
+        try:
+            # 假设回答格式为简单的关键词列表，例如 "keyword1, keyword2, keyword3"
+            kws = answer.split('[')[1].split(']')[0].split(', ')
+            keywords = [kw.strip() for kw in kws]
+            return keywords
+        except requests.exceptions.RequestException as e:
+            logger.error(f"生成关键词出现错误: {e}")
+    
+    except requests.exceptions.RequestException as e:
+        logger.error(f"请求过程中出现错误: {e}")
+        return []
+    
 def collect_papers(keywords: list, max_results: int = 100) -> None:
     crawler = ArXivCrawler()
     for keyword in keywords:
@@ -72,7 +118,10 @@ def main():
 
     # Collect command
     collect_parser = subparsers.add_parser('collect', help='收集论文')
-    collect_parser.add_argument('-k', '--keywords', nargs='+', required=True, help='搜索关键词列表（例如：transformer llm）')
+    collect_group = collect_parser.add_mutually_exclusive_group(required=True)
+    collect_group.add_argument('-k', '--keywords', nargs='+', help='搜索关键词列表（例如：transformer llm）')
+    collect_group.add_argument('-d', '--description', type=str, help='主题描述，用于自动推断关键词')
+
     collect_parser.add_argument('-m', '--max', type=int, default=50, help='每个关键词最大获取论文数（默认：50）')
 
     collect_parser = subparsers.add_parser('collect_acl', help='收集ACL论文')
@@ -91,7 +140,14 @@ def main():
     args = parser.parse_args()
 
     if args.command == 'collect':
-        collect_papers(args.keywords, args.max)
+        if args.keywords:
+            keywords = args.keywords
+        elif args.description:
+            keywords = infer_keywords_from_description(args.description)
+        else:
+            raise ValueError("未指定有效的关键词或描述")
+
+        collect_papers(keywords, args.max)
     elif args.command == 'collect_acl':
         collect_papers_acl(args.keywords, args.max)
     elif args.command == 'update_db':
