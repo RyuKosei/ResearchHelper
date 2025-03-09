@@ -1,13 +1,14 @@
 import requests
-import time
-from pathlib import Path
 from bs4 import BeautifulSoup
 import logging
 
+from src.crawlers import BaseCrawler
+
 logger = logging.getLogger(__name__)
 
-class ArXivCrawler:
+class ArXivCrawler(BaseCrawler):
     def __init__(self):
+        super().__init__("http://arxiv.org/pdf/")
         self.base_url = "http://export.arxiv.org/api/query?"
         self.pdf_base_url = "http://arxiv.org/pdf/"
         self.headers = {'User-Agent': 'ResearchHelper'}
@@ -30,21 +31,3 @@ class ArXivCrawler:
             }
             entries.append(paper)
         return entries
-
-    def download_paper(self, paper_id, save_dir, max_retries=3, delay=5):
-        url = f"{self.pdf_base_url}{paper_id}.pdf"
-        Path(save_dir).mkdir(parents=True, exist_ok=True)  
-        for attempt in range(max_retries):
-            try:
-                response = requests.get(url, headers=self.headers)
-                if response.status_code == 200:
-                    file_path = Path(save_dir) / f"{paper_id}.pdf"
-                    with open(file_path, 'wb') as f:
-                        f.write(response.content)
-                    return {'success': True, 'path': str(file_path)}
-                else:
-                    time.sleep(delay)
-            except Exception as e:
-                logger.error(f"下载失败: {str(e)}")
-                time.sleep(delay)
-        return {'success': False}

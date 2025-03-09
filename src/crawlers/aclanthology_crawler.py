@@ -1,6 +1,4 @@
-import requests
 import time
-from pathlib import Path
 from bs4 import BeautifulSoup
 import logging
 from selenium import webdriver
@@ -9,10 +7,13 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
+from src.crawlers import BaseCrawler
+
 logger = logging.getLogger(__name__)
 
-class ACLAnthologyCrawler:
+class ACLAnthologyCrawler(BaseCrawler):
     def __init__(self):
+        super().__init__("https://aclanthology.org/")
         self.base_url = "https://aclanthology.org/"
         self.search_url = "https://aclanthology.org/search/?q="
         self.headers = {'User-Agent': 'ResearchHelper'}
@@ -117,20 +118,3 @@ class ACLAnthologyCrawler:
             logger.error(f"抓取论文详情时出错: {str(e)}")
             return None
 
-    def download_paper(self, paper_id, save_dir, max_retries=3, delay=5):
-        url = f"{self.base_url}{paper_id}.pdf"
-        Path(save_dir).mkdir(parents=True, exist_ok=True)
-        for attempt in range(max_retries):
-            try:
-                response = requests.get(url, headers=self.headers)
-                if response.status_code == 200:
-                    file_path = Path(save_dir) / f"{paper_id}.pdf"
-                    with open(file_path, 'wb') as f:
-                        f.write(response.content)
-                    return {'success': True, 'path': str(file_path)}
-                else:
-                    time.sleep(delay)
-            except Exception as e:
-                logger.error(f"下载失败: {str(e)}")
-                time.sleep(delay)
-        return {'success': False}

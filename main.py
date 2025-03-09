@@ -1,7 +1,7 @@
 import argparse
 
-from src.aclanthology_crawler import ACLAnthologyCrawler
-from src.arxiv_crawler import ArXivCrawler
+from src.crawlers.aclanthology_crawler import ACLAnthologyCrawler
+from src.crawlers.arxiv_crawler import ArXivCrawler
 from src.generate_answer import query_and_generate_answer
 from src.update_vector_db import update_vector_db
 from config.settings import Config
