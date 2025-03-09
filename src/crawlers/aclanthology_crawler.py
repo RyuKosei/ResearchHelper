@@ -1,18 +1,22 @@
-import requests
 import time
-from pathlib import Path
 from bs4 import BeautifulSoup
 import logging
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from webdriver_manager.chrome import ChromeDriverManager
+
+from .base_crawler import BaseCrawler
 
 logger = logging.getLogger(__name__)
 
-class ACLAnthologyCrawler:
+class ACLAnthologyCrawler(BaseCrawler):
     def __init__(self):
+        super().__init__("https://aclanthology.org/")
         self.base_url = "https://aclanthology.org/"
         self.search_url = "https://aclanthology.org/search/?q="
         self.headers = {'User-Agent': 'ResearchHelper'}
@@ -26,10 +30,28 @@ class ACLAnthologyCrawler:
 
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-    def search_papers(self, keyword, max_results=10):
+    def search_papers(self, keyword, max_results=10, sort_by="relevance"):
         search_url = f"{self.search_url}{keyword.replace(' ', '+')}"
         self.driver.get(search_url)
         time.sleep(3)  # 等待页面加载
+
+        if sort_by == "latest":
+            try:
+                sort_dropdown = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.CLASS_NAME, "gsc-selected-option-container"))
+                )
+                sort_dropdown.click()  # 模拟点击打开排序选项
+                time.sleep(1)  # 等待下拉菜单展开
+
+                year_sort_option = WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable((By.XPATH, "//div[@class='gsc-option' and text()='Year of Publication']"))
+                )
+
+                year_sort_option.click()
+                time.sleep(3)  # 等待页面刷新
+
+            except Exception as e:
+                print(f"排序时出错: {str(e)}")
 
         entries = []
         seen_urls = set()
@@ -117,20 +139,3 @@ class ACLAnthologyCrawler:
             logger.error(f"抓取论文详情时出错: {str(e)}")
             return None
 
-    def download_paper(self, paper_id, save_dir, max_retries=3, delay=5):
-        url = f"{self.base_url}{paper_id}.pdf"
-        Path(save_dir).mkdir(parents=True, exist_ok=True)
-        for attempt in range(max_retries):
-            try:
-                response = requests.get(url, headers=self.headers)
-                if response.status_code == 200:
-                    file_path = Path(save_dir) / f"{paper_id}.pdf"
-                    with open(file_path, 'wb') as f:
-                        f.write(response.content)
-                    return {'success': True, 'path': str(file_path)}
-                else:
-                    time.sleep(delay)
-            except Exception as e:
-                logger.error(f"下载失败: {str(e)}")
-                time.sleep(delay)
-        return {'success': False}
