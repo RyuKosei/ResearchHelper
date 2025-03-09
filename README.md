@@ -18,10 +18,6 @@ ResearchHelper/
 
 ## 待完成内容
 ```
-泛化关键词描述（如：输入一句话，生成一些可能的关键词进行搜索）
-
-更多数据库索引
-
 自动更新功能
 
 向量库重置功能
@@ -29,6 +25,10 @@ ResearchHelper/
 其余api支持
 
 多模态支持（目前只支持pdf中的文字内容）
+
+多轮对话功能
+
+前端设计
 ```
 
 
@@ -47,7 +47,7 @@ API_URL = "https://api.siliconflow.cn/v1"  # 你使用的api的base-url，这里
 
 # 抓取领域论文（以大语言模型为例），可以指定具体关键词，或者用自然语言描述指定领域方向以自动分析关键词，若不指定--max作为抓取的论文数量则默认为50
 python main.py collect --keywords "large language models" --max 5
-python main.py collect --description "大模型相关领域的方向" --max 5
+python main.py collect --description "大模型相关领域的方向" --max 3
 
 # 更新数据库，若不指定--keywords则更新全部数据库
 python main.py update_db --keywords "large language models" 
