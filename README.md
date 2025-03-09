@@ -3,16 +3,17 @@
 ## 项目结构
 ```
 ResearchHelper/
-├── src/                    # 代码目录
-│   ├── arxiv_crawler.py    # arXiv爬虫实现
-│   └── update_vector_db.py # 更新向量数据库
-│   └── generate_answer.py  # 生成科研方向建议
-├── config/                 # 配置管理
+├── src/                           # 代码目录
+│   ├── arxiv_crawler.py           # arXiv爬虫实现
+│   ├── aclanthology_crawler.py    # ACL anthology爬虫实现
+│   └── update_vector_db.py        # 更新向量数据库
+│   └── generate_answer.py         # 生成科研方向建议
+├── config/                        # 配置管理
 │   └── settings.py       
-├── storage/                # 论文存储 
-│   └── papers/             # PDF存储目录（自动创建）
-├── requirements.txt        # 依赖库
-└── main.py                 # 主程序入口
+├── storage/                       # 论文存储 
+│   └── papers/                    # PDF存储目录（自动创建）
+├── requirements.txt               # 依赖库
+└── main.py                        # 主程序入口
 ```
 
 ## 待完成内容
@@ -43,8 +44,9 @@ pip install -r requirements.txt
 API_KEY = "sk-xxx"  # 替换成你的api-key
 API_URL = "https://api.siliconflow.cn/v1"  # 你使用的api的base-url，这里用的是硅基流动
 
-# 抓取领域论文（以大语言模型为例），若不指定--max作为抓取的论文数量则默认为50
+# 抓取领域论文（以大语言模型为例），可以指定具体关键词，或者用自然语言描述指定领域方向以自动分析关键词，若不指定--max作为抓取的论文数量则默认为50
 python main.py collect --keywords "large language models" --max 5
+python main.py collect --description "大模型相关领域的方向" --max 5
 
 # 更新数据库，若不指定--keywords则更新全部数据库
 python main.py update_db --keywords "large language models" 
