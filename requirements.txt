@@ -6,3 +6,4 @@ Requests==2.32.3
 selenium==4.29.0
 webdriver-manager==4.0.2
 lxml==5.3.1
+flask~=3.1.0
