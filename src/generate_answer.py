@@ -25,7 +25,7 @@ def save_conversation(conversation_id, conversation_history):
         json.dump(conversation_history, file)
 
 def query_and_generate_answer(query, db_path, conversation_id=None, top_k=Config.TOP_K):
-    print(conversation_id) if conversation_id else None
+    # print(conversation_id) if conversation_id else None
     print("正在处理查询并生成答案...")
     client = PersistentClient(path=db_path)
     collection = client.get_collection(name="pdf_collection")  # 确保集合名称与实际一致
@@ -79,5 +79,5 @@ def query_and_generate_answer(query, db_path, conversation_id=None, top_k=Config
     if conversation_id is not None:
         save_conversation(conversation_id, messages)
     
-    print("查询完成，正在生成答案...")
+    # print("查询完成，正在生成答案...")
     return answer

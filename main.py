@@ -20,6 +20,7 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+logging.getLogger('chromadb.telemetry.product.posthog').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 def infer_keywords_from_description(description: str) -> list:
@@ -103,15 +104,15 @@ def advise(directory: str, query: str = None, conversation_id: int = None):
             print("对话历史：")
             for message in conversation_history:
                 role = "用户" if message["role"] == "user" else "助手"
-                print(f"{role}: {message['content']}")
+                print(f"====={role}===== \n{message['content']}")
         
         while True:
-            query = input("请输入您的问题（输入'quit'退出）：")
-            if query.lower() == 'quit':
+            query = input("请输入您的问题（输入'q'退出）：")
+            if query.lower() == 'q':
                 break
             
             answer = query_and_generate_answer(query=query, db_path=db_path, conversation_id=conversation_id)
-            print(f"助手: {answer}")
+            print(f"=====助手===== \n{answer}")
             
             # 更新对话历史
             conversation_history.append({"role": "user", "content": query})
@@ -121,12 +122,12 @@ def advise(directory: str, query: str = None, conversation_id: int = None):
             save_conversation(conversation_id, conversation_history)
     else:
         if query is None:
-            query = input("请输入您的问题（输入'quit'退出）：")
-            if query.lower() == 'quit':
+            query = input("请输入您的问题（输入'q'退出）：")
+            if query.lower() == 'q':
                 return
         
         answer = query_and_generate_answer(query=query, db_path=db_path)
-        print(f"助手: {answer}")
+        print(f"=====助手===== \n{answer}")
         
         # 将用户的查询和助手的回答添加到对话历史中
         conversation_history = [{"role": "user", "content": query}, {"role": "assistant", "content": answer}]
