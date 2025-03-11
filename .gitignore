@@ -5,6 +5,7 @@ __pycache__/
 
 chroma_db/
 papers/
+history_chat/
 backup/
 /test/
 /.idea/

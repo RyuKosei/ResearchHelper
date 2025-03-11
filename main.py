@@ -9,6 +9,7 @@ from pathlib import Path
 import logging
 import os
 import requests
+import json
 
 # 配置日志
 logging.basicConfig(
@@ -66,10 +67,25 @@ def infer_keywords_from_description(description: str) -> list:
         logger.error(f"请求过程中出现错误: {e}")
         return []
 
+history_path = Path("storage/history_chat")
 
-def advise(directory: str, query: str = None):
-    # 如果没有提供query，则使用默认值
-    if not query:
+def load_conversation(conversation_id):
+    conversation_file = history_path / f"{conversation_id}.json"
+    if conversation_file.exists():
+        with open(conversation_file, 'r') as file:
+            return json.load(file)
+    else:
+        return None
+
+def save_conversation(conversation_id, conversation_history):
+    if not history_path.exists():
+        history_path.mkdir(parents=True)
+    conversation_file = history_path / f"{conversation_id}.json"
+    with open(conversation_file, 'w') as file:
+        json.dump(conversation_history, file)
+
+def advise(directory: str, query: str = None, conversation_id: int = None):
+    if not query and conversation_id is None:
         query = "这个领域有哪些最新的研究方向值得尝试？"
     
     db_path = os.path.join(directory, 'chroma_db')
@@ -77,9 +93,51 @@ def advise(directory: str, query: str = None):
         logger.error("未找到数据库，请先运行update_db命令以生成数据库。")
         return
     
-    answer = query_and_generate_answer(query=query, db_path=db_path)
-    
-    print(f"{answer}")
+    # 如果提供了conversation_id，则加载对话历史
+    if conversation_id is not None:
+        conversation_history = load_conversation(conversation_id)
+        if conversation_history is None:
+            print(f"对话ID {conversation_id} 不存在，请检查输入后重试。")
+            return
+        else:
+            print("对话历史：")
+            for message in conversation_history:
+                role = "用户" if message["role"] == "user" else "助手"
+                print(f"{role}: {message['content']}")
+        
+        while True:
+            query = input("请输入您的问题（输入'quit'退出）：")
+            if query.lower() == 'quit':
+                break
+            
+            answer = query_and_generate_answer(query=query, db_path=db_path, conversation_id=conversation_id)
+            print(f"助手: {answer}")
+            
+            # 更新对话历史
+            conversation_history.append({"role": "user", "content": query})
+            conversation_history.append({"role": "assistant", "content": answer})
+            
+            # 每次对话后都保存对话历史
+            save_conversation(conversation_id, conversation_history)
+    else:
+        if query is None:
+            query = input("请输入您的问题（输入'quit'退出）：")
+            if query.lower() == 'quit':
+                return
+        
+        answer = query_and_generate_answer(query=query, db_path=db_path)
+        print(f"助手: {answer}")
+        
+        # 将用户的查询和助手的回答添加到对话历史中
+        conversation_history = [{"role": "user", "content": query}, {"role": "assistant", "content": answer}]
+        
+        # 如果是新对话，询问是否需要保存对话ID
+        save_input = input("是否要保存此对话？(y/n): ")
+        if save_input.lower() == 'y':
+            conversation_files = list(history_path.glob('*.json'))
+            new_id = len(conversation_files) + 1  # 新对话ID基于已有文件数加1
+            save_conversation(new_id, conversation_history)  # 保存带有当前对话的新对话
+            print(f"已创建新对话，ID为{new_id}。")
 
 def main():
     parser = argparse.ArgumentParser(description="科研研究方向分析工具")
@@ -101,7 +159,9 @@ def main():
     # Advise command
     advise_parser = subparsers.add_parser('advise', help='根据数据库中的内容提供建议')
     advise_parser.add_argument('-k', '--keywords', type=str, required=True, help='提供关键词以确定要使用的数据库')
-    advise_parser.add_argument('-q', '--query', type=str, default=None, help='用户的查询（可选）')
+    group = advise_parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-q', '--query', type=str, help='用户的查询（当不使用--id时）')
+    group.add_argument('--id', type=int, help='指定对话ID以加载历史记录')
 
     args = parser.parse_args()
 
@@ -125,7 +185,7 @@ def main():
     elif args.command == 'advise':
         folder_name = args.keywords if hasattr(args, 'keywords') else None
         directory = Path(Config.BASE_PAPER_DIR) / (folder_name.replace(' ', '_') if folder_name else '')
-        advise(directory=directory, query=args.query)
+        advise(directory=directory, query=args.query, conversation_id=args.id)
 
 if __name__ == "__main__":
     main()
