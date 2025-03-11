@@ -6,12 +6,13 @@ ResearchHelper/
 ├── src/                           # 代码目录
 │   ├── arxiv_crawler.py           # arXiv爬虫实现
 │   ├── aclanthology_crawler.py    # ACL anthology爬虫实现
-│   └── update_vector_db.py        # 更新向量数据库
+│   ├── update_vector_db.py        # 更新向量数据库
 │   └── generate_answer.py         # 生成科研方向建议
 ├── config/                        # 配置管理
 │   └── settings.py       
 ├── storage/                       # 论文存储 
-│   └── papers/                    # PDF存储目录（自动创建）
+│   ├── papers/                    # PDF存储目录（自动创建）
+│   └── history_chat/              # 对话历史记录（自动创建）
 ├── requirements.txt               # 依赖库
 └── main.py                        # 主程序入口
 ```
@@ -52,8 +53,9 @@ python main.py collect --description "大模型相关领域的方向" --max 3
 # 更新数据库，若不指定--keywords则更新全部数据库
 python main.py update_db --keywords "large language models" 
 
-# 提出科研建议，若不指定--query则默认询问研究方向
+# 提出科研建议，若指定--query则发起新的对话，并产生一个新的id供调出历史记录；若指定--id则展示指定id对应的对话历史记录，并支持继续对话
 python main.py advise --keywords "large language models" --query "我手头的算力资源并不充裕，从科研的角度来讲，我可以在哪些大模型的方向进行尝试呢？"
+python main.py advise --keywords "large language models" --id 1
 ```
 
 ## 指令和参数
