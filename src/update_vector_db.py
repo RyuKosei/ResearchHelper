@@ -40,8 +40,11 @@ def update_vector_db(directory, chunk_size=300, overlap=50):
         print("未找到现有向量索引，正在创建新索引...")
     existing_files = {metadata['filename'] for metadata in collection.get()['metadatas']}
 
-    print("当前目录下的文件列表：")
-    print(existing_files)
+    if existing_files != ():
+        print("当前数据库中的文件列表：")
+        print(existing_files)
+    else:
+        print("当前数据库中无已入库文件.")
     headers = {
         "Authorization": f"Bearer {Config.API_KEY}",
         "Content-Type": "application/json"
