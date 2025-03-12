@@ -29,6 +29,7 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
     return chunks
 
 def update_vector_db(directory, chunk_size=300, overlap=50):
+
     db_path = os.path.join(directory, 'chroma_db')
     client = PersistentClient(path=db_path)
 
@@ -93,3 +94,4 @@ def update_vector_db(directory, chunk_size=300, overlap=50):
                 documents=documents
             )
     print("向量数据库更新完成.")
+    return existing_files

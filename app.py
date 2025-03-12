@@ -6,12 +6,9 @@ from pathlib import Path
 from main import infer_keywords_from_description
 from src.crawlers import ArXivCrawler, ACLAnthologyCrawler
 from src.update_vector_db import update_vector_db
+from main import advise
 
-# 假设这些函数/类已经在你的项目中实现，并位于相应的模块中
-# from your_project_module import (
-#     infer_keywords_from_description, ArXivCrawler, ACLAnthologyCrawler,
-#     update_vector_db, advise, Config
-# )
+
 
 app = Flask(__name__)
 
@@ -47,6 +44,28 @@ def collect():
         return jsonify({"message": "论文收集成功", "keywords": keywords}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/update_db', methods=['POST'])
+def update_db():
+    data = request.get_json()
+    keywords = data.get('keywords')
+
+    # 如果提供了关键词，则只更新指定文件夹，否则更新所有文件夹
+    if keywords:
+        directory = Path("storage/papers") / keywords.replace(' ', '_')
+    else:
+        directory = Path("storage/papers")
+
+    try:
+        pdflist=update_vector_db(directory)
+        #将pdflist的set转为JSON
+        pdflist = list(pdflist)
+
+        return jsonify({"message": "数据库更新成功", "pdflist": pdflist}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 
