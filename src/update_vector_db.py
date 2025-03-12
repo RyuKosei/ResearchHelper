@@ -2,8 +2,9 @@ import os
 import pymupdf  
 from chromadb import PersistentClient
 from chromadb.errors import InvalidCollectionException
-import requests
 from config.settings import Config
+from src.api_client import APIClient
+
 
 def extract_text_from_pdf(pdf_path):
     print("正在从PDF文件中提取文本：", pdf_path)
@@ -45,11 +46,8 @@ def update_vector_db(directory, chunk_size=300, overlap=50):
         print(existing_files)
     else:
         print("当前数据库中无已入库文件.")
-    headers = {
-        "Authorization": f"Bearer {Config.API_KEY}",
-        "Content-Type": "application/json"
-    }
 
+    api_client = APIClient()
     for filename in os.listdir(directory):
         if filename.endswith('.pdf'):
             pdf_path = os.path.join(directory, filename)
@@ -60,25 +58,10 @@ def update_vector_db(directory, chunk_size=300, overlap=50):
             text = extract_text_from_pdf(pdf_path)
             chunks = split_text_into_chunks(text, chunk_size, overlap)
 
-            ids = []
-            metadatas = []
-            documents = []
-            embeddings = []
+            ids, metadatas, documents, embeddings = [], [], [], []
 
             for chunk in chunks:
-                payload = {
-                    "model": "BAAI/bge-m3",
-                    "input": chunk,
-                    "encoding_format": "float"
-                }
-
-                response = requests.post(
-                    f"{Config.BASE_URL}/embeddings",
-                    headers=headers,
-                    json=payload
-                )
-                embedding = response.json().get('data')[0].get('embedding')
-
+                embedding = api_client.get_embeddings(chunk)
                 if embedding:
                     id_str = f"{filename}_{len(ids)}"
                     ids.append(id_str)

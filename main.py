@@ -2,7 +2,7 @@ import argparse
 
 from src.crawlers.aclanthology_crawler import ACLAnthologyCrawler
 from src.crawlers.arxiv_crawler import ArXivCrawler
-from src.generate_answer import query_and_generate_answer
+from src.generate_answer import query_and_generate_answer, infer_keywords_from_description, advise
 from src.update_vector_db import update_vector_db
 from config.settings import Config
 from pathlib import Path
@@ -23,122 +23,6 @@ logging.basicConfig(
 logging.getLogger('chromadb.telemetry.product.posthog').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-def infer_keywords_from_description(description: str) -> list:
-    url = f"{Config.BASE_URL}/chat/completions"
-    prompt = f"""以下是对某个研究领域的描述：{description}\n，请你据此描述，提炼出若干个英文关键词，你的回答需要严格遵循以下格式，且不能输出任何其他内容！
-关键词数量：X（X为你认为需要提炼的英文关键词数）
-关键词内容：[keyword1, keyword2, ...]（将你提炼出的英文关键词代替为keyword1, keyword2...）"""
-    data = {
-        "model": "Pro/deepseek-ai/DeepSeek-R1",
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        "stream": False,
-        "max_tokens": 1024,  # 由于只需要关键词，这里可以设置较小的值
-        "temperature": 0.7
-    }
-
-    try:
-        response = requests.post(
-            url, 
-            headers={
-                "Authorization": f"Bearer {Config.API_KEY}", 
-                "Content-Type": "application/json"
-            }, 
-            json=data
-        )
-        response.raise_for_status()  # 如果响应状态码表示错误，则抛出HTTPError
-        
-        answer = response.json().get('choices')[0].get('message').get('content')
-        # print(response.json)
-        print("正在分析用户描述以提取关键词...")
-        print(answer)
-        try:
-            # 假设回答格式为简单的关键词列表，例如 "keyword1, keyword2, keyword3"
-            kws = answer.split('[')[1].split(']')[0].split(', ')
-            keywords = [kw.strip() for kw in kws]
-            return keywords
-        except requests.exceptions.RequestException as e:
-            logger.error(f"生成关键词出现错误: {e}")
-    
-    except requests.exceptions.RequestException as e:
-        logger.error(f"请求过程中出现错误: {e}")
-        return []
-
-history_path = Path("storage/history_chat")
-
-def load_conversation(conversation_id):
-    conversation_file = history_path / f"{conversation_id}.json"
-    if conversation_file.exists():
-        with open(conversation_file, 'r') as file:
-            return json.load(file)
-    else:
-        return None
-
-def save_conversation(conversation_id, conversation_history):
-    if not history_path.exists():
-        history_path.mkdir(parents=True)
-    conversation_file = history_path / f"{conversation_id}.json"
-    with open(conversation_file, 'w') as file:
-        json.dump(conversation_history, file)
-
-def advise(directory: str, query: str = None, conversation_id: int = None):
-    if not query and conversation_id is None:
-        query = "这个领域有哪些最新的研究方向值得尝试？"
-    
-    db_path = os.path.join(directory, 'chroma_db')
-    if not os.path.exists(db_path):
-        logger.error("未找到数据库，请先运行update_db命令以生成数据库。")
-        return
-    
-    # 如果提供了conversation_id，则加载对话历史
-    if conversation_id is not None:
-        conversation_history = load_conversation(conversation_id)
-        if conversation_history is None:
-            print(f"对话ID {conversation_id} 不存在，请检查输入后重试。")
-            return
-        else:
-            print("对话历史：")
-            for message in conversation_history:
-                role = "用户" if message["role"] == "user" else "助手"
-                print(f"====={role}===== \n{message['content']}")
-        
-        while True:
-            query = input("请输入您的问题（输入'q'退出）：")
-            if query.lower() == 'q':
-                break
-            
-            answer = query_and_generate_answer(query=query, db_path=db_path, conversation_id=conversation_id)
-            print(f"=====助手===== \n{answer}")
-            
-            # 更新对话历史
-            conversation_history.append({"role": "user", "content": query})
-            conversation_history.append({"role": "assistant", "content": answer})
-            
-            # 每次对话后都保存对话历史
-            save_conversation(conversation_id, conversation_history)
-    else:
-        if query is None:
-            query = input("请输入您的问题（输入'q'退出）：")
-            if query.lower() == 'q':
-                return
-        
-        answer = query_and_generate_answer(query=query, db_path=db_path)
-        print(f"=====助手===== \n{answer}")
-        
-        # 将用户的查询和助手的回答添加到对话历史中
-        conversation_history = [{"role": "user", "content": query}, {"role": "assistant", "content": answer}]
-        
-        # 如果是新对话，询问是否需要保存对话ID
-        save_input = input("是否要保存此对话？(y/n): ")
-        if save_input.lower() == 'y':
-            conversation_files = list(history_path.glob('*.json'))
-            new_id = len(conversation_files) + 1  # 新对话ID基于已有文件数加1
-            save_conversation(new_id, conversation_history)  # 保存带有当前对话的新对话
-            print(f"已创建新对话，ID为{new_id}。")
 
 def main():
     parser = argparse.ArgumentParser(description="科研研究方向分析工具")

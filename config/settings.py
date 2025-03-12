@@ -6,7 +6,7 @@ class Config:
     BASE_PAPER_DIR = Path("storage/papers").absolute()  # 修改点：基础存储目录
     
     # 大模型配置
-    API_KEY = "sk-xxx"  # 替换成你的api-key
+    API_KEY = "sk-fyevldlvklxrhtzdnyqrbxewauldwueywbwwjxltlhqofurk"  # 替换成你的api-key
     BASE_URL = "https://api.siliconflow.cn/v1"  # 你使用的api的base-url，这里用的是硅基流动
 
     # 检索配置
