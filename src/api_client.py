@@ -4,9 +4,13 @@ from config.settings import Config
 class APIClient:
     """封装 API 交互，简化请求逻辑"""
 
-    def __init__(self, base_url=Config.BASE_URL, api_key=Config.API_KEY):
+    def __init__(self, base_url=Config.BASE_URL, api_key=Config.API_KEY, chat_model = Config.CHAT_MODEL, embedding_model = Config.EMBEDDING_MODEL, max_token = Config.MAX_TOKEN, temperature = Config.TEMPERATURE):
         self.base_url = base_url
         self.api_key = api_key
+        self.chat_model = chat_model
+        self.embedding_model = embedding_model
+        self.max_token = max_token
+        self.temperature = temperature
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -23,10 +27,10 @@ class APIClient:
             print(f"请求 {endpoint} 失败: {e}")
             return None
 
-    def get_embeddings(self, text, model="BAAI/bge-m3"):
+    def get_embeddings(self, text):
         """获取文本的嵌入向量"""
         payload = {
-            "model": model,
+            "model": self.embedding_model,
             "input": text,
             "encoding_format": "float"
         }
@@ -35,14 +39,14 @@ class APIClient:
             return response.get('data')[0].get('embedding')
         return None
 
-    def chat_completion(self, messages, model="Pro/deepseek-ai/DeepSeek-R1", max_tokens=4096, temperature=0.7):
+    def chat_completion(self, messages):
         """获取聊天模型的回答"""
         payload = {
-            "model": model,
+            "model": self.chat_model,
             "messages": messages,
             "stream": False,
-            "max_tokens": max_tokens,
-            "temperature": temperature
+            "max_tokens": self.max_token,
+            "temperature": self.temperature
         }
         response = self.post("chat/completions", payload)
         if response:

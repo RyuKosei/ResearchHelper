@@ -1,5 +1,4 @@
 import argparse
-
 from src.crawlers.aclanthology_crawler import ACLAnthologyCrawler
 from src.crawlers.arxiv_crawler import ArXivCrawler
 from src.generate_answer import query_and_generate_answer, infer_keywords_from_description, advise
@@ -7,9 +6,6 @@ from src.update_vector_db import update_vector_db
 from config.settings import Config
 from pathlib import Path
 import logging
-import os
-import requests
-import json
 
 # 配置日志
 logging.basicConfig(
