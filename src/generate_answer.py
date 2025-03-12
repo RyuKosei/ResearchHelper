@@ -26,7 +26,7 @@ def save_conversation(conversation_id, conversation_history):
         json.dump(conversation_history, file)
 
 def infer_keywords_from_description(description: str) -> list:
-    api_client = APIClient()
+    api_client = APIClient(max_token=1024)
 
     prompt = (
         f"以下是对某个研究领域的描述：{description}\n"
@@ -37,7 +37,7 @@ def infer_keywords_from_description(description: str) -> list:
 
     messages = [{"role": "user", "content": prompt}]
     try:
-        response = api_client.chat_completion(messages, max_tokens=1024)
+        response = api_client.chat_completion(messages)
         print("正在分析用户描述以提取关键词...")
         print(response)
         try:
