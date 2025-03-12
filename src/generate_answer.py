@@ -37,7 +37,7 @@ def infer_keywords_from_description(description: str) -> list:
 
     messages = [{"role": "user", "content": prompt}]
     try:
-        response = api_client.chat_completion(messages,max_tokens=1024)
+        response = api_client.chat_completion(messages, max_tokens=1024)
         print("正在分析用户描述以提取关键词...")
         print(response)
         try:
